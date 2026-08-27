@@ -1,47 +1,51 @@
-<script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+﻿<script setup lang="ts">
+import { computed, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { useAuthStore } from '@/stores/auth.store';
+import Navbar from '@/components/layout/Navbar.vue';
+import Footer from '@/components/layout/Footer.vue';
+import ToastNotification from '@/components/ui/ToastNotification.vue';
+
+const route = useRoute();
+const authStore = useAuthStore();
+
+// Identify if the active route is inside the admin section
+const isAdminRoute = computed(() => {
+  return route.path.startsWith('/admin') && route.path !== '/admin/login';
+});
+
+const isLoginRoute = computed(() => {
+  return route.path === '/admin/login';
+});
+
+onMounted(() => {
+  authStore.checkAuth();
+});
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
+  <div class="min-h-screen flex flex-col bg-[#060908] text-[#f8fafc] bg-grid-pattern bg-radial-gradient">
+    <!-- Public Header (shown on public pages & 404) -->
+    <Navbar v-if="!isAdminRoute && !isLoginRoute" />
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
+    <!-- Main Content -->
+    <main class="flex-1">
+      <RouterView v-slot="{ Component }">
+        <Transition
+          enter-active-class="transition duration-200 ease-out"
+          enter-from-class="opacity-0 translate-y-1"
+          enter-to-class="opacity-100 translate-y-0"
+          mode="out-in"
+        >
+          <component :is="Component" />
+        </Transition>
+      </RouterView>
+    </main>
 
-  <main>
-    <TheWelcome />
-  </main>
+    <!-- Public Footer (shown on public pages) -->
+    <Footer v-if="!isAdminRoute && !isLoginRoute" />
+
+    <!-- Global Toast Notifications -->
+    <ToastNotification />
+  </div>
 </template>
-
-<style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
-</style>
