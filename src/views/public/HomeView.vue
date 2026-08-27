@@ -322,7 +322,7 @@ const highlights = [
 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <a
-          href="mailto:erik@example.com"
+          href="mailto:erik.maia15oliveira@gmail.com"
           class="flex flex-col items-center gap-3 p-6 rounded-2xl bg-[#0e1411] border border-white/10 hover:border-[#00ff87]/40 hover:shadow-[0_0_20px_rgba(0,255,135,0.15)] transition-all group"
         >
           <div
