@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted, ref, nextTick } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useProjectsStore } from '@/stores/projects.store'
+import { useSiteContentStore } from '@/stores/site-content.store'
 import ProjectGrid from '@/components/project/ProjectGrid.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import GitGraph from '@/components/signature/GitGraph.vue'
@@ -19,6 +20,7 @@ import fotoPerfil from '@/assets/foto-perfil.jpg'
 gsap.registerPlugin(ScrollTrigger)
 
 const projectsStore = useProjectsStore()
+const siteContentStore = useSiteContentStore()
 const { prefersReducedMotion } = useReducedMotion()
 
 const heroRef = ref<HTMLElement | null>(null)
@@ -69,6 +71,7 @@ const contactLinks = [
 
 onMounted(async () => {
   projectsStore.fetchProjects().catch(() => {})
+  await siteContentStore.fetchContent().catch(() => {})
 
   await nextTick()
 
@@ -183,35 +186,31 @@ onUnmounted(() => {
         ref="heroRef"
         class="max-w-6xl mx-auto px-5 sm:px-8 pt-16 sm:pt-24 lg:pt-32"
       >
-        <div class="max-w-3xl space-y-8">
-          <span class="hero-label section-label block">01 · Início</span>
+        <div class="space-y-6 sm:space-y-8 mt-12 sm:mt-0 relative z-10">
+          <span class="hero-label section-label block">{{ siteContentStore.homeContent?.eyebrow || '01 · INÍCIO' }}</span>
 
-          <h1 class="text-3xl sm:text-5xl lg:text-6xl font-display font-bold text-[--text-primary] tracking-tight leading-[1.1]">
-            <span class="hero-headline-word inline-block">Construo </span>
-            <span class="hero-headline-word inline-block">a </span>
-            <span class="hero-headline-word inline-block">infraestrutura </span>
-            <span class="hero-headline-word inline-block">que </span>
-            <span class="hero-headline-word inline-block">faz </span>
-            <span class="hero-headline-word inline-block">produtos </span>
-            <span class="hero-headline-word inline-block text-[--accent]">funcionarem.</span>
+          <h1 class="text-4xl sm:text-5xl md:text-6xl font-display font-bold text-[--text-primary] tracking-tight leading-[1.1]">
+            <span v-for="(word, i) in (siteContentStore.homeContent?.headline || 'Construo a infraestrutura que faz produtos funcionarem.').split(' ')" :key="i" class="hero-headline-word inline-block">
+              {{ word }}&nbsp;
+            </span>
           </h1>
 
           <p class="hero-sub text-base sm:text-lg font-body text-[--text-secondary] leading-relaxed max-w-2xl">
-            APIs em NestJS, interfaces em Vue 3, dados em PostgreSQL. Do schema do banco ao deploy — eu codifico o pipeline inteiro.
+            {{ siteContentStore.homeContent?.description || 'APIs em NestJS, interfaces em Vue 3, dados em PostgreSQL. Do schema do banco ao deploy — eu codifico o pipeline inteiro.' }}
           </p>
 
           <!-- Tech stack with stagger animation -->
           <div class="flex flex-wrap gap-3">
             <div
-              v-for="tech in techStack"
-              :key="tech.name"
+              v-for="tech in (siteContentStore.homeContent?.skills || techStack)"
+              :key="tech.label || tech.name"
               class="hero-stack-item flex items-center gap-2 px-3 py-1.5 bg-[--surface] border border-[--border-subtle] rounded-md hover:border-[--border-accent] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(99,102,241,0.1)] transition-all duration-200 group cursor-default"
             >
               <span class="text-xs font-mono font-medium text-[--text-primary] group-hover:text-[--accent] transition-colors">
-                {{ tech.name }}
+                {{ tech.label || tech.name }}
               </span>
               <span class="text-[10px] font-mono text-[--text-muted] hidden sm:inline">
-                {{ tech.role }}
+                {{ tech.category || tech.role }}
               </span>
             </div>
           </div>
@@ -289,7 +288,7 @@ onUnmounted(() => {
                   class="photo-duotone w-48 h-56 sm:w-52 sm:h-64 shrink-0"
                 >
                   <img
-                    :src="fotoPerfil"
+                    :src="siteContentStore.aboutContent?.photoUrl ? ('http://localhost:3000' + siteContentStore.aboutContent.photoUrl) : fotoPerfil"
                     alt="Foto de Erik"
                     loading="lazy"
                   />
@@ -297,20 +296,27 @@ onUnmounted(() => {
 
                 <div class="space-y-4">
                   <h2 class="reveal-child text-2xl sm:text-3xl font-display font-bold text-[--text-primary] tracking-tight">
-                    Erik Maia
+                    {{ siteContentStore.aboutContent?.name || 'Erik Maia' }}
                   </h2>
 
-                  <p class="reveal-child text-sm font-body text-[--text-secondary] leading-relaxed">
-                    Desenvolvedor focado em construir sistemas que não quebram quando o tráfego aumenta. Trabalho de ponta a ponta: modelo os dados, escrevo a API em NestJS com arquitetura modular (DTOs, guards, autenticação JWT), e construo a interface em Vue 3 com TypeScript e Tailwind.
-                  </p>
+                  <template v-if="siteContentStore.aboutContent?.bioParagraphs?.length">
+                    <p v-for="(p, i) in siteContentStore.aboutContent.bioParagraphs" :key="i" class="reveal-child text-sm font-body text-[--text-secondary] leading-relaxed">
+                      {{ p }}
+                    </p>
+                  </template>
+                  <template v-else>
+                    <p class="reveal-child text-sm font-body text-[--text-secondary] leading-relaxed">
+                      Desenvolvedor focado em construir sistemas que não quebram quando o tráfego aumenta. Trabalho de ponta a ponta: modelo os dados, escrevo a API em NestJS com arquitetura modular (DTOs, guards, autenticação JWT), e construo a interface em Vue 3 com TypeScript e Tailwind.
+                    </p>
 
-                  <p class="reveal-child text-sm font-body text-[--text-secondary] leading-relaxed">
-                    Uso Redis pra cache quando a performance importa e Docker pra manter o ambiente igual do meu setup até a produção. Prefiro entender o problema todo antes de escrever a primeira linha — é mais rápido corrigir uma decisão no papel do que refatorar em produção.
-                  </p>
+                    <p class="reveal-child text-sm font-body text-[--text-secondary] leading-relaxed">
+                      Uso Redis pra cache quando a performance importa e Docker pra manter o ambiente igual do meu setup até a produção. Prefiro entender o problema todo antes de escrever a primeira linha — é mais rápido corrigir uma decisão no papel do que refatorar em produção.
+                    </p>
 
-                  <p class="reveal-child text-sm font-body text-[--text-secondary] leading-relaxed">
-                    Programo há 1 a 2 anos, com foco em projetos reais que precisam funcionar sob uso de verdade, não só rodar localmente. Aberto a estágio, CLT ou projetos freelance.
-                  </p>
+                    <p class="reveal-child text-sm font-body text-[--text-secondary] leading-relaxed">
+                      Programo há 1 a 2 anos, com foco em projetos reais que precisam funcionar sob uso de verdade, não só rodar localmente. Aberto a estágio, CLT ou projetos freelance.
+                    </p>
+                  </template>
                 </div>
               </div>
             </div>
@@ -324,33 +330,45 @@ onUnmounted(() => {
               </h3>
 
               <div class="space-y-4">
-                <div>
-                  <span class="text-[10px] font-mono text-[--text-muted] uppercase tracking-wider block mb-1">Localização</span>
-                  <p class="text-sm font-body font-medium text-[--text-primary]">Brasil · Remoto</p>
-                </div>
+                <template v-if="siteContentStore.aboutContent?.techSummary?.length">
+                  <div v-for="item in siteContentStore.aboutContent.techSummary" :key="item.id">
+                    <span class="text-[10px] font-mono text-[--text-muted] uppercase tracking-wider block mb-1">{{ item.label }}</span>
+                    <p v-if="item.label.toLowerCase() === 'disponibilidade'" class="text-sm font-body font-medium text-[--accent] flex items-center gap-2">
+                      <span class="w-1.5 h-1.5 rounded-full bg-[--accent] animate-pulse" />
+                      {{ item.value }}
+                    </p>
+                    <p v-else class="text-sm font-body font-medium text-[--text-primary]">{{ item.value }}</p>
+                  </div>
+                </template>
+                <template v-else>
+                  <div>
+                    <span class="text-[10px] font-mono text-[--text-muted] uppercase tracking-wider block mb-1">Localização</span>
+                    <p class="text-sm font-body font-medium text-[--text-primary]">Brasil · Remoto</p>
+                  </div>
 
-                <div>
-                  <span class="text-[10px] font-mono text-[--text-muted] uppercase tracking-wider block mb-1">Especialidade</span>
-                  <p class="text-sm font-body font-medium text-[--text-primary]">Full Stack (NestJS + Vue 3)</p>
-                </div>
+                  <div>
+                    <span class="text-[10px] font-mono text-[--text-muted] uppercase tracking-wider block mb-1">Especialidade</span>
+                    <p class="text-sm font-body font-medium text-[--text-primary]">Full Stack (NestJS + Vue 3)</p>
+                  </div>
 
-                <div>
-                  <span class="text-[10px] font-mono text-[--text-muted] uppercase tracking-wider block mb-1">Banco de Dados</span>
-                  <p class="text-sm font-body font-medium text-[--text-primary]">PostgreSQL, Redis</p>
-                </div>
+                  <div>
+                    <span class="text-[10px] font-mono text-[--text-muted] uppercase tracking-wider block mb-1">Banco de Dados</span>
+                    <p class="text-sm font-body font-medium text-[--text-primary]">PostgreSQL, Redis</p>
+                  </div>
 
-                <div>
-                  <span class="text-[10px] font-mono text-[--text-muted] uppercase tracking-wider block mb-1">Modelo de trabalho</span>
-                  <p class="text-sm font-body font-medium text-[--text-primary]">CLT, Estágio ou Freelance/PJ</p>
-                </div>
+                  <div>
+                    <span class="text-[10px] font-mono text-[--text-muted] uppercase tracking-wider block mb-1">Modelo de trabalho</span>
+                    <p class="text-sm font-body font-medium text-[--text-primary]">CLT, Estágio ou Freelance/PJ</p>
+                  </div>
 
-                <div>
-                  <span class="text-[10px] font-mono text-[--text-muted] uppercase tracking-wider block mb-1">Disponibilidade</span>
-                  <p class="text-sm font-body font-medium text-[--accent] flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[--accent] animate-pulse" />
-                    Aberta para novos projetos & contratos
-                  </p>
-                </div>
+                  <div>
+                    <span class="text-[10px] font-mono text-[--text-muted] uppercase tracking-wider block mb-1">Disponibilidade</span>
+                    <p class="text-sm font-body font-medium text-[--accent] flex items-center gap-2">
+                      <span class="w-1.5 h-1.5 rounded-full bg-[--accent] animate-pulse" />
+                      Aberta para novos projetos & contratos
+                    </p>
+                  </div>
+                </template>
               </div>
             </div>
           </div>

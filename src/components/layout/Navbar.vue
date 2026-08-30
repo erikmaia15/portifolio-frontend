@@ -2,7 +2,6 @@
 import { ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
-import { gsap } from 'gsap'
 import {
   LayoutDashboard,
   LogOut,
@@ -33,56 +32,10 @@ const navLinks = [
 
 const handleNavClick = (link: { to: string; hash: boolean; label: string }, event: Event) => {
   closeMobileMenu()
-
-  if (link.hash && route.path === '/') {
-    event.preventDefault()
-    const hash = link.to.substring(link.to.indexOf('#'))
-    const targetEl = document.getElementById(hash.substring(1))
-    if (targetEl) {
-      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      if (prefersReducedMotion) {
-        targetEl.scrollIntoView({ block: 'start' })
-      } else {
-        const targetY = targetEl.getBoundingClientRect().top + window.scrollY
-        const scrollObj = { y: window.scrollY }
-        gsap.to(scrollObj, {
-          y: targetY,
-          duration: 1.5,
-          ease: 'power2.inOut',
-          onUpdate: () => {
-            window.scrollTo(0, scrollObj.y)
-          }
-        })
-      }
-      window.history.pushState(null, '', link.to)
-    }
-  }
 }
 
 const handleContactClick = (event: Event) => {
   closeMobileMenu()
-  if (route.path === '/') {
-    event.preventDefault()
-    const targetEl = document.getElementById('contato')
-    if (targetEl) {
-      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      if (prefersReducedMotion) {
-        targetEl.scrollIntoView({ block: 'start' })
-      } else {
-        const targetY = targetEl.getBoundingClientRect().top + window.scrollY
-        const scrollObj = { y: window.scrollY }
-        gsap.to(scrollObj, {
-          y: targetY,
-          duration: 1.5,
-          ease: 'power2.inOut',
-          onUpdate: () => {
-            window.scrollTo(0, scrollObj.y)
-          }
-        })
-      }
-      window.history.pushState(null, '', '/#contato')
-    }
-  }
 }
 </script>
 
