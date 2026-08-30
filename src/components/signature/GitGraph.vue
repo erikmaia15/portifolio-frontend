@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useReducedMotion } from '@/composables/useReducedMotion'
 
 interface Section {
   id: string
   label: string
   hash: string
+  commitMsg?: string
 }
 
 const props = defineProps<{
@@ -14,25 +15,46 @@ const props = defineProps<{
 
 const { prefersReducedMotion } = useReducedMotion()
 const activeSectionIndex = ref(0)
-const lineDrawn = ref(false)
-const svgRef = ref<SVGSVGElement | null>(null)
+const scrollProgress = ref(0)
+const hoveredIndex = ref<number | null>(null)
 
-const nodeSpacing = 280
-const svgHeight = computed(() => (props.sections.length - 1) * nodeSpacing + 80)
+const nodeSpacing = 200
+const svgHeight = computed(() => (props.sections.length - 1) * nodeSpacing + 40)
+const lineLength = computed(() => svgHeight.value - 40)
+
+const progressOffset = computed(() => {
+  if (prefersReducedMotion.value) return 0
+  return lineLength.value * (1 - scrollProgress.value)
+})
 
 const observers: IntersectionObserver[] = []
 
-onMounted(() => {
-  // Draw-in animation
-  if (!prefersReducedMotion.value) {
-    setTimeout(() => {
-      lineDrawn.value = true
-    }, 300)
-  } else {
-    lineDrawn.value = true
+function handleScroll() {
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight
+  if (docHeight <= 0) {
+    scrollProgress.value = 1
+    return
   }
+  scrollProgress.value = Math.min(window.scrollY / docHeight, 1)
+}
 
-  // Observe sections for active state
+function scrollToSection(sectionId: string) {
+  const el = document.getElementById(sectionId)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
+
+function getNodeState(index: number): 'active' | 'committed' | 'pending' {
+  if (index === activeSectionIndex.value) return 'active'
+  if (index < activeSectionIndex.value) return 'committed'
+  return 'pending'
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll, { passive: true })
+  handleScroll()
+
   props.sections.forEach((section, index) => {
     const el = document.getElementById(section.id)
     if (!el) return
@@ -53,86 +75,160 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
   observers.forEach((o) => o.disconnect())
 })
 </script>
 
 <template>
-  <div class="hidden lg:block fixed left-8 xl:left-12 top-1/2 -translate-y-1/2 z-20" aria-hidden="true">
+  <nav
+    class="hidden lg:flex fixed left-6 xl:left-10 top-1/2 -translate-y-1/2 z-20 flex-col items-start"
+    aria-label="Navegação por seções"
+  >
     <svg
-      ref="svgRef"
       :width="48"
       :height="svgHeight"
       :viewBox="`0 0 48 ${svgHeight}`"
       fill="none"
-      class="overflow-visible"
+      class="overflow-visible absolute left-0 top-0"
+      aria-hidden="true"
     >
-      <!-- Main vertical line -->
+      <!-- Background track -->
       <line
-        x1="24" y1="20"
-        x2="24" :y2="svgHeight - 20"
+        x1="12" y1="20"
+        x2="12" :y2="svgHeight - 20"
         stroke="var(--border-subtle)"
-        stroke-width="1"
+        stroke-width="1.5"
+        stroke-linecap="round"
       />
-      <!-- Animated progress line -->
+      <!-- Progress line (scroll-driven) -->
       <line
-        x1="24" y1="20"
-        x2="24" :y2="svgHeight - 20"
+        x1="12" y1="20"
+        x2="12" :y2="svgHeight - 20"
         stroke="var(--accent)"
-        stroke-width="1"
-        :stroke-dasharray="svgHeight - 40"
-        :stroke-dashoffset="lineDrawn ? 0 : svgHeight - 40"
-        :style="{
-          transition: prefersReducedMotion ? 'none' : `stroke-dashoffset 2s cubic-bezier(0.22, 1, 0.36, 1) 0.5s`,
-        }"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        :stroke-dasharray="lineLength"
+        :stroke-dashoffset="progressOffset"
+        class="git-progress-line"
       />
 
       <!-- Nodes -->
       <g v-for="(section, i) in sections" :key="section.id">
-        <!-- Node circle -->
+        <!-- Outer glow ring (active only) -->
         <circle
-          cx="24"
+          v-if="getNodeState(i) === 'active'"
+          cx="12"
           :cy="20 + i * nodeSpacing"
-          :r="activeSectionIndex >= i ? 6 : 4"
-          :fill="activeSectionIndex >= i ? 'var(--accent-warm)' : 'var(--surface-elevated)'"
-          :stroke="activeSectionIndex >= i ? 'var(--accent-warm)' : 'var(--border-subtle)'"
-          stroke-width="2"
-          :style="{
-            transition: prefersReducedMotion ? 'none' : 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
-          }"
-        />
-        <!-- Glow ring when active -->
-        <circle
-          v-if="activeSectionIndex === i"
-          cx="24"
-          :cy="20 + i * nodeSpacing"
-          r="10"
+          r="11"
           fill="none"
           stroke="var(--accent-warm)"
           stroke-width="1"
-          opacity="0.3"
+          :opacity="prefersReducedMotion ? 0.3 : undefined"
+          :class="{ 'git-glow-ring': !prefersReducedMotion }"
+        />
+
+        <!-- Node circle -->
+        <circle
+          cx="12"
+          :cy="20 + i * nodeSpacing"
+          :r="getNodeState(i) === 'active' ? 5.5 : getNodeState(i) === 'committed' ? 4.5 : 3.5"
+          :fill="
+            getNodeState(i) === 'active'
+              ? 'var(--accent-warm)'
+              : getNodeState(i) === 'committed'
+                ? 'var(--accent)'
+                : 'var(--surface-elevated)'
+          "
+          :stroke="
+            getNodeState(i) === 'pending'
+              ? 'var(--text-muted)'
+              : 'none'
+          "
+          :stroke-width="getNodeState(i) === 'pending' ? 1.5 : 0"
+          class="git-node"
         />
       </g>
     </svg>
 
-    <!-- Labels alongside -->
+    <!-- Clickable hash labels -->
     <div
-      class="absolute left-14 top-0 flex flex-col"
+      class="relative flex flex-col"
       :style="{ height: `${svgHeight}px` }"
     >
-      <div
+      <button
         v-for="(section, i) in sections"
         :key="section.id"
-        class="absolute flex items-center gap-2"
-        :style="{ top: `${16 + i * nodeSpacing}px` }"
+        class="absolute left-8 flex items-center gap-2 group cursor-pointer bg-transparent border-none p-0"
+        :style="{ top: `${14 + i * nodeSpacing}px` }"
+        @click="scrollToSection(section.id)"
+        @mouseenter="hoveredIndex = i"
+        @mouseleave="hoveredIndex = null"
+        :aria-label="`Ir para ${section.label}`"
       >
         <span
-          class="font-mono text-[10px] tracking-wider transition-colors duration-300"
-          :class="activeSectionIndex >= i ? 'text-[--accent-warm]' : 'text-[--text-muted]'"
+          class="font-mono text-[10px] tracking-wider transition-all duration-300 whitespace-nowrap"
+          :class="{
+            'text-[--accent-warm] scale-105 origin-left': getNodeState(i) === 'active',
+            'text-[--accent] opacity-70': getNodeState(i) === 'committed',
+            'text-[--text-muted]': getNodeState(i) === 'pending',
+          }"
         >
           {{ section.hash }}
         </span>
-      </div>
+
+        <!-- Tooltip (commit message) -->
+        <Transition
+          enter-active-class="transition duration-150 ease-out"
+          enter-from-class="opacity-0 translate-x-1"
+          enter-to-class="opacity-100 translate-x-0"
+          leave-active-class="transition duration-100 ease-in"
+          leave-from-class="opacity-100 translate-x-0"
+          leave-to-class="opacity-0 translate-x-1"
+        >
+          <span
+            v-if="hoveredIndex === i && section.commitMsg"
+            class="absolute left-full ml-3 px-2.5 py-1 bg-[--surface-elevated] border border-[--border-subtle] rounded text-[10px] font-mono text-[--text-secondary] whitespace-nowrap shadow-lg"
+          >
+            {{ section.commitMsg }}
+          </span>
+        </Transition>
+      </button>
     </div>
-  </div>
+  </nav>
 </template>
+
+<style scoped>
+.git-progress-line {
+  transition: stroke-dashoffset 0.15s ease-out;
+  will-change: stroke-dashoffset;
+}
+
+.git-node {
+  transition: r 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              fill 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              stroke 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.git-glow-ring {
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.2; r: 10; }
+  50% { opacity: 0.45; r: 12; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .git-progress-line {
+    transition: none;
+  }
+  .git-node {
+    transition: none;
+  }
+  .git-glow-ring {
+    animation: none;
+    opacity: 0.3;
+  }
+}
+</style>

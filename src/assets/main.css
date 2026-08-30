@@ -117,7 +117,7 @@
   object-fit: cover;
   filter: contrast(1.1) brightness(0.9);
   mix-blend-mode: luminosity;
-  transition: filter 0.5s ease, mix-blend-mode 0.5s ease;
+  transition: filter 0.6s ease, mix-blend-mode 0.6s ease;
 }
 
 .photo-duotone::before {
@@ -183,6 +183,24 @@
   66% { transform: translate(-25px, 15px) scale(1.05); }
 }
 
+/* Subtle grid background for depth */
+.hero-grid-bg {
+  position: relative;
+}
+
+.hero-grid-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-size: 48px 48px;
+  background-image:
+    linear-gradient(to right, rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+  mask-image: radial-gradient(ellipse 70% 60% at 30% 30%, black 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
 /* Card hover border grow effect */
 .card-border-grow {
   position: relative;
@@ -236,5 +254,13 @@
   .ambient-blob-1,
   .ambient-blob-2 {
     animation: none !important;
+  }
+
+  .card-border-grow::after {
+    transition: none !important;
+  }
+
+  .photo-duotone img {
+    transition: none !important;
   }
 }

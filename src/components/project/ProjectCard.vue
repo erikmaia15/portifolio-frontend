@@ -19,9 +19,9 @@ const handleImageError = () => {
 
 <template>
   <article
-    class="card-border-grow group flex flex-col bg-[--surface] border border-[--border-subtle] rounded-lg overflow-hidden transition-all duration-300 hover:border-[--border-accent]"
+    class="project-card card-border-grow group flex flex-col bg-[--surface] border border-[--border-subtle] rounded-lg overflow-hidden transition-all duration-300 hover:border-[--border-accent] hover:-translate-y-1.5 hover:shadow-[0_12px_32px_rgba(99,102,241,0.1)]"
   >
-    <!-- Image -->
+    <!-- Image with scanline overlay -->
     <div class="relative w-full h-48 bg-[--surface-elevated] overflow-hidden">
       <img
         v-if="!imageError && project.imageUrl"
@@ -29,15 +29,21 @@ const handleImageError = () => {
         :alt="project.name"
         loading="lazy"
         @error="handleImageError"
-        class="w-full h-full object-cover object-center group-hover:-translate-y-1 transition-transform duration-500 ease-out"
+        class="w-full h-full object-cover object-center group-hover:scale-[1.03] transition-transform duration-700 ease-out"
       />
       <div
         v-else
         class="w-full h-full flex flex-col items-center justify-center text-[--text-muted] gap-2"
       >
         <ImageOff class="w-6 h-6" />
-        <span class="text-xs">Sem preview</span>
+        <span class="text-xs font-body">Sem preview</span>
       </div>
+
+      <!-- Scanline overlay (subtle, visible on hover) -->
+      <div
+        class="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 scanline-overlay"
+        aria-hidden="true"
+      />
 
       <!-- Gradient overlay -->
       <div
@@ -88,3 +94,25 @@ const handleImageError = () => {
     </div>
   </article>
 </template>
+
+<style scoped>
+.scanline-overlay {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(99, 102, 241, 0.03) 2px,
+    rgba(99, 102, 241, 0.03) 4px
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-card {
+    transition: none !important;
+  }
+  .project-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+</style>

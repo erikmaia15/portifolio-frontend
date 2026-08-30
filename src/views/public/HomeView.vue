@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, nextTick } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useProjectsStore } from '@/stores/projects.store'
 import ProjectGrid from '@/components/project/ProjectGrid.vue'
@@ -10,8 +10,6 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import {
   ArrowRight,
-  ArrowUpRight,
-  ExternalLink,
   Github,
   Linkedin,
   Mail,
@@ -27,14 +25,15 @@ const heroRef = ref<HTMLElement | null>(null)
 const aboutRef = ref<HTMLElement | null>(null)
 const projectsRef = ref<HTMLElement | null>(null)
 const contactRef = ref<HTMLElement | null>(null)
+const photoRef = ref<HTMLElement | null>(null)
 
 const ctx = ref<gsap.Context | null>(null)
 
 const graphSections = [
-  { id: 'inicio', label: 'Início', hash: 'a3f2e1' },
-  { id: 'projetos', label: 'Projetos', hash: 'b7c4d2' },
-  { id: 'sobre', label: 'Sobre', hash: 'e1a8f3' },
-  { id: 'contato', label: 'Contato', hash: 'f4d6a9' },
+  { id: 'inicio', label: 'Início', hash: 'a3f2e1', commitMsg: 'feat: hero section' },
+  { id: 'projetos', label: 'Projetos', hash: 'b7c4d2', commitMsg: 'feat: projects grid' },
+  { id: 'sobre', label: 'Sobre', hash: 'e1a8f3', commitMsg: 'docs: about & bio' },
+  { id: 'contato', label: 'Contato', hash: 'f4d6a9', commitMsg: 'feat: contact links' },
 ]
 
 const techStack = [
@@ -68,37 +67,100 @@ const contactLinks = [
   },
 ]
 
-onMounted(() => {
+onMounted(async () => {
   projectsStore.fetchProjects().catch(() => {})
+
+  await nextTick()
 
   if (prefersReducedMotion.value) return
 
   ctx.value = gsap.context(() => {
-    // Hero entrance timeline
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+    // === HERO ENTRANCE TIMELINE ===
+    const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } })
 
-    tl.from('.hero-label', { opacity: 0, y: 12, duration: 0.5, delay: 0.3 })
-      .from('.hero-headline', { opacity: 0, y: 20, duration: 0.7 }, '-=0.2')
-      .from('.hero-sub', { opacity: 0, y: 16, duration: 0.5 }, '-=0.3')
-      .from('.hero-stack', { opacity: 0, y: 12, duration: 0.5 }, '-=0.2')
-      .from('.hero-actions', { opacity: 0, y: 16, duration: 0.5 }, '-=0.2')
+    // Set initial states
+    gsap.set('.hero-label', { opacity: 0, y: 16 })
+    gsap.set('.hero-headline-word', { opacity: 0, y: 20 })
+    gsap.set('.hero-sub', { opacity: 0, y: 16 })
+    gsap.set('.hero-stack-item', { opacity: 0, y: 12, scale: 0.95 })
+    gsap.set('.hero-actions', { opacity: 0, y: 16 })
 
-    // Scroll reveals
-    const revealSections = [projectsRef.value, aboutRef.value, contactRef.value]
-    revealSections.forEach((section) => {
-      if (!section) return
-      gsap.from(section, {
-        opacity: 0,
-        y: 32,
-        duration: 0.8,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: section,
-          start: 'top 85%',
-          toggleActions: 'play none none none',
+    heroTl
+      .to('.hero-label', { opacity: 1, y: 0, duration: 0.4 }, 0.2)
+      .to('.hero-headline-word', {
+        opacity: 1, y: 0, duration: 0.5,
+        stagger: 0.08,
+      }, 0.4)
+      .to('.hero-sub', { opacity: 1, y: 0, duration: 0.5 }, '-=0.15')
+      .to('.hero-stack-item', {
+        opacity: 1, y: 0, scale: 1, duration: 0.35,
+        stagger: 0.06,
+      }, '-=0.2')
+      .to('.hero-actions', { opacity: 1, y: 0, duration: 0.45 }, '-=0.15')
+
+    // === PROJECTS SECTION REVEAL ===
+    if (projectsRef.value) {
+      gsap.set(projectsRef.value.querySelectorAll('.reveal-child'), { opacity: 0, y: 20 })
+      ScrollTrigger.create({
+        trigger: projectsRef.value,
+        start: 'top 82%',
+        once: true,
+        onEnter: () => {
+          gsap.to(projectsRef.value!.querySelectorAll('.reveal-child'), {
+            opacity: 1, y: 0, duration: 0.5,
+            stagger: 0.1,
+            ease: 'power3.out',
+          })
         },
       })
-    })
+    }
+
+    // === ABOUT SECTION REVEAL ===
+    if (aboutRef.value) {
+      gsap.set(aboutRef.value.querySelectorAll('.reveal-child'), { opacity: 0, y: 20 })
+
+      // Photo clip-path reveal
+      if (photoRef.value) {
+        gsap.set(photoRef.value, { clipPath: 'inset(100% 0% 0% 0%)' })
+      }
+
+      ScrollTrigger.create({
+        trigger: aboutRef.value,
+        start: 'top 82%',
+        once: true,
+        onEnter: () => {
+          const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+          tl.to(aboutRef.value!.querySelectorAll('.reveal-child'), {
+            opacity: 1, y: 0, duration: 0.5,
+            stagger: 0.1,
+          })
+          if (photoRef.value) {
+            tl.to(photoRef.value, {
+              clipPath: 'inset(0% 0% 0% 0%)',
+              duration: 0.8,
+              ease: 'power3.inOut',
+            }, 0.15)
+          }
+        },
+      })
+    }
+
+    // === CONTACT SECTION REVEAL ===
+    if (contactRef.value) {
+      gsap.set(contactRef.value.querySelectorAll('.reveal-child'), { opacity: 0, y: 20 })
+      ScrollTrigger.create({
+        trigger: contactRef.value,
+        start: 'top 82%',
+        once: true,
+        onEnter: () => {
+          gsap.to(contactRef.value!.querySelectorAll('.reveal-child'), {
+            opacity: 1, y: 0, duration: 0.5,
+            stagger: 0.1,
+            ease: 'power3.out',
+          })
+        },
+      })
+    }
   })
 })
 
@@ -124,9 +186,14 @@ onUnmounted(() => {
         <div class="max-w-3xl space-y-8">
           <span class="hero-label section-label block">01 · Início</span>
 
-          <h1 class="hero-headline text-3xl sm:text-5xl lg:text-6xl font-display font-bold text-[--text-primary] tracking-tight leading-[1.1]">
-            Construo a infraestrutura que faz produtos
-            <span class="text-[--accent]">funcionarem.</span>
+          <h1 class="text-3xl sm:text-5xl lg:text-6xl font-display font-bold text-[--text-primary] tracking-tight leading-[1.1]">
+            <span class="hero-headline-word inline-block">Construo </span>
+            <span class="hero-headline-word inline-block">a </span>
+            <span class="hero-headline-word inline-block">infraestrutura </span>
+            <span class="hero-headline-word inline-block">que </span>
+            <span class="hero-headline-word inline-block">faz </span>
+            <span class="hero-headline-word inline-block">produtos </span>
+            <span class="hero-headline-word inline-block text-[--accent]">funcionarem.</span>
           </h1>
 
           <p class="hero-sub text-base sm:text-lg font-body text-[--text-secondary] leading-relaxed max-w-2xl">
@@ -134,12 +201,12 @@ onUnmounted(() => {
             Do schema do banco ao deploy na Vercel — eu codifico todo o pipeline.
           </p>
 
-          <!-- Tech stack as structured list, not generic badges -->
-          <div class="hero-stack flex flex-wrap gap-3">
+          <!-- Tech stack with stagger animation -->
+          <div class="flex flex-wrap gap-3">
             <div
               v-for="tech in techStack"
               :key="tech.name"
-              class="flex items-center gap-2 px-3 py-1.5 bg-[--surface] border border-[--border-subtle] rounded-md hover:border-[--border-accent] transition-colors duration-200 group cursor-default"
+              class="hero-stack-item flex items-center gap-2 px-3 py-1.5 bg-[--surface] border border-[--border-subtle] rounded-md hover:border-[--border-accent] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(99,102,241,0.1)] transition-all duration-200 group cursor-default"
             >
               <span class="text-xs font-mono font-medium text-[--text-primary] group-hover:text-[--accent] transition-colors">
                 {{ tech.name }}
@@ -173,7 +240,7 @@ onUnmounted(() => {
         ref="projectsRef"
         class="max-w-6xl mx-auto px-5 sm:px-8 space-y-8"
       >
-        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div class="reveal-child flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div class="space-y-2">
             <span class="section-label">02 · Projetos</span>
             <h2 class="text-2xl sm:text-3xl font-display font-bold text-[--text-primary] tracking-tight">
@@ -192,12 +259,14 @@ onUnmounted(() => {
           </RouterLink>
         </div>
 
-        <ProjectGrid
-          :projects="projectsStore.featuredProjects"
-          :loading="projectsStore.isLoading"
-          :limit="3"
-          :highlight-first="true"
-        />
+        <div class="reveal-child">
+          <ProjectGrid
+            :projects="projectsStore.featuredProjects"
+            :loading="projectsStore.isLoading"
+            :limit="3"
+            :highlight-first="true"
+          />
+        </div>
       </section>
 
       <!-- ============================================ -->
@@ -212,11 +281,14 @@ onUnmounted(() => {
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
             <!-- Photo + Bio column -->
             <div class="lg:col-span-7 space-y-6">
-              <span class="section-label">03 · Sobre</span>
+              <span class="reveal-child section-label block">03 · Sobre</span>
 
               <div class="flex flex-col sm:flex-row gap-8 items-start">
-                <!-- Profile photo with duotone treatment -->
-                <div class="photo-duotone w-40 h-48 sm:w-44 sm:h-52 shrink-0">
+                <!-- Profile photo with duotone + clip-path reveal -->
+                <div
+                  ref="photoRef"
+                  class="photo-duotone w-48 h-56 sm:w-52 sm:h-64 shrink-0"
+                >
                   <img
                     :src="fotoPerfil"
                     alt="Foto de Erik"
@@ -225,19 +297,19 @@ onUnmounted(() => {
                 </div>
 
                 <div class="space-y-4">
-                  <h2 class="text-2xl sm:text-3xl font-display font-bold text-[--text-primary] tracking-tight">
+                  <h2 class="reveal-child text-2xl sm:text-3xl font-display font-bold text-[--text-primary] tracking-tight">
                     Erik Maia
                   </h2>
 
-                  <p class="text-sm font-body text-[--text-secondary] leading-relaxed">
+                  <p class="reveal-child text-sm font-body text-[--text-secondary] leading-relaxed">
                     Desenvolvedor full stack do Brasil. Meu trabalho é montar o backend que aguenta carga e o frontend que as pessoas realmente usam.
                   </p>
 
-                  <p class="text-sm font-body text-[--text-secondary] leading-relaxed">
+                  <p class="reveal-child text-sm font-body text-[--text-secondary] leading-relaxed">
                     Escrevo APIs modulares com NestJS e TypeORM, modelos de dados normalizados em PostgreSQL, e interfaces reativas com Vue 3 e Composition API. Gosto de TypeScript estrito — sem <code class="font-mono text-[--accent] text-xs bg-[--accent-dim] px-1 py-0.5 rounded">any</code>, sem gambiarras.
                   </p>
 
-                  <p class="text-sm font-body text-[--text-secondary] leading-relaxed">
+                  <p class="reveal-child text-sm font-body text-[--text-secondary] leading-relaxed">
                     Quando um projeto precisa de cache, eu configuro Redis. Quando precisa de isolamento, eu containerizo com Docker. Eu gosto de código que funciona em produção sem surpreender ninguém às 3 da manhã.
                   </p>
                 </div>
@@ -246,7 +318,7 @@ onUnmounted(() => {
 
             <!-- Technical summary -->
             <div
-              class="lg:col-span-5 bg-[--surface-elevated] border border-[--border-subtle] rounded-md p-6 space-y-5"
+              class="reveal-child lg:col-span-5 bg-[--surface-elevated] border border-[--border-subtle] rounded-md p-6 space-y-5"
             >
               <h3 class="text-sm font-display font-bold text-[--text-primary] pb-3 border-b border-[--border-subtle]">
                 Resumo Técnico
@@ -296,11 +368,11 @@ onUnmounted(() => {
       >
         <div class="max-w-2xl space-y-8">
           <div class="space-y-3">
-            <span class="section-label">04 · Contato</span>
-            <h2 class="text-2xl sm:text-3xl font-display font-bold text-[--text-primary] tracking-tight">
+            <span class="reveal-child section-label block">04 · Contato</span>
+            <h2 class="reveal-child text-2xl sm:text-3xl font-display font-bold text-[--text-primary] tracking-tight">
               Vamos construir algo.
             </h2>
-            <p class="text-sm sm:text-base font-body text-[--text-secondary] leading-relaxed">
+            <p class="reveal-child text-sm sm:text-base font-body text-[--text-secondary] leading-relaxed">
               Se você tem um projeto que precisa de backend sólido ou uma interface que funcione de verdade, me mande uma mensagem.
             </p>
           </div>
@@ -312,7 +384,7 @@ onUnmounted(() => {
               :href="link.href"
               :target="link.href.startsWith('mailto') ? undefined : '_blank'"
               :rel="link.href.startsWith('mailto') ? undefined : 'noopener noreferrer'"
-              class="card-border-grow flex flex-col gap-3 p-5 rounded-lg bg-[--surface] border border-[--border-subtle] hover:border-[--border-accent] transition-all duration-200 group"
+              class="reveal-child card-border-grow flex flex-col gap-3 p-5 rounded-lg bg-[--surface] border border-[--border-subtle] hover:border-[--border-accent] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(99,102,241,0.08)] transition-all duration-300 group"
             >
               <div
                 class="w-10 h-10 rounded-md bg-[--accent-dim] flex items-center justify-center text-[--accent] group-hover:bg-[--accent] group-hover:text-[--canvas] transition-colors duration-200"
