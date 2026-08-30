@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { Project } from '@/types/project'
-import { ExternalLink, ImageOff } from 'lucide-vue-next'
+import { ref } from "vue";
+import type { Project } from "@/types/project";
+import { ExternalLink, ImageOff } from "lucide-vue-next";
 
 interface Props {
-  project: Project
-  featured?: boolean
+  project: Project;
+  featured?: boolean;
 }
 
-defineProps<Props>()
+defineProps<Props>();
 
-const imageError = ref(false)
+const imageError = ref(false);
 
 const handleImageError = () => {
-  imageError.value = true
-}
+  imageError.value = true;
+};
 </script>
 
 <template>
   <article
-    class="project-card card-border-grow group flex flex-col bg-[--surface] border border-[--border-subtle] rounded-lg overflow-hidden transition-all duration-300 hover:border-[--border-accent] hover:-translate-y-1.5 hover:shadow-[0_12px_32px_rgba(99,102,241,0.1)]"
+    class="project-card card-border-grow group flex flex-col bg-[--surface] border border-[--border-subtle] rounded-lg overflow-hidden hover:border-[--border-accent] hover:-translate-y-1.5 hover:shadow-[0_12px_32px_rgba(99,102,241,0.1)]"
   >
     <!-- Image with scanline overlay -->
     <div class="relative w-full h-48 bg-[--surface-elevated] overflow-hidden">
@@ -29,7 +29,7 @@ const handleImageError = () => {
         :alt="project.name"
         loading="lazy"
         @error="handleImageError"
-        class="w-full h-full object-cover object-center group-hover:scale-[1.03] transition-transform duration-700 ease-out"
+        class="w-full h-full object-cover object-center group-hover:scale-[1.03]"
       />
       <div
         v-else
@@ -41,7 +41,7 @@ const handleImageError = () => {
 
       <!-- Scanline overlay (subtle, visible on hover) -->
       <div
-        class="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 scanline-overlay"
+        class="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 scanline-overlay"
         aria-hidden="true"
       />
 
@@ -62,7 +62,7 @@ const handleImageError = () => {
       <span
         class="absolute top-3 right-3 font-mono text-[10px] text-[--text-muted] bg-[--canvas]/60 backdrop-blur-sm px-1.5 py-0.5 rounded"
       >
-        #{{ String(project.order).padStart(2, '0') }}
+        #{{ String(project.order).padStart(2, "0") }}
       </span>
     </div>
 
@@ -74,7 +74,9 @@ const handleImageError = () => {
         >
           {{ project.name }}
         </h3>
-        <p class="text-sm font-body text-[--text-secondary] line-clamp-3 leading-relaxed">
+        <p
+          class="text-sm font-body text-[--text-secondary] line-clamp-3 leading-relaxed"
+        >
           {{ project.description }}
         </p>
       </div>
@@ -96,7 +98,22 @@ const handleImageError = () => {
 </template>
 
 <style scoped>
+.project-card {
+  /* Controla o tempo de transição de elevação (transform), sombra (box-shadow) e cor de borda */
+  transition:
+    transform 1000ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 1000ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 1000ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.project-card img {
+  /* Controla o tempo de transição do zoom da imagem */
+  transition: transform 1000ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .scanline-overlay {
+  /* Controla a velocidade de aparecimento do efeito de scanline */
+  transition: opacity 1000ms cubic-bezier(0.16, 1, 0.3, 1);
   background: repeating-linear-gradient(
     0deg,
     transparent,
@@ -107,7 +124,9 @@ const handleImageError = () => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .project-card {
+  .project-card,
+  .project-card img,
+  .scanline-overlay {
     transition: none !important;
   }
   .project-card:hover {
