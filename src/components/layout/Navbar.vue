@@ -1,147 +1,123 @@
-﻿<script setup lang="ts">
-import { ref } from 'vue';
-import { RouterLink, useRoute } from 'vue-router';
-import { useAuthStore } from '@/stores/auth.store';
+<script setup lang="ts">
+import { ref } from 'vue'
+import { RouterLink, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth.store'
 import {
-  Code2,
-  FolderGit2,
-  User,
-  Send,
   LayoutDashboard,
   LogOut,
   Menu,
   X,
-  ExternalLink,
-} from 'lucide-vue-next';
-import BaseButton from '@/components/ui/BaseButton.vue';
+  ArrowUpRight,
+} from 'lucide-vue-next'
 
-const authStore = useAuthStore();
-const route = useRoute();
-const isMobileMenuOpen = ref(false);
+const authStore = useAuthStore()
+const route = useRoute()
+const isMobileMenuOpen = ref(false)
 
 const closeMobileMenu = () => {
-  isMobileMenuOpen.value = false;
-};
+  isMobileMenuOpen.value = false
+}
 
 const handleLogout = () => {
-  authStore.logout();
-  closeMobileMenu();
-};
+  authStore.logout()
+  closeMobileMenu()
+}
+
+const navLinks = [
+  { to: '/', label: 'Início', hash: false },
+  { to: '/projetos', label: 'Projetos', hash: false },
+  { to: '/#sobre', label: 'Sobre', hash: true },
+  { to: '/#contato', label: 'Contato', hash: true },
+]
 </script>
 
 <template>
   <header
-    class="sticky top-0 z-40 w-full backdrop-blur-xl bg-[#060908]/85 border-b border-white/5 transition-all"
+    class="sticky top-0 z-40 w-full backdrop-blur-xl bg-[--canvas]/90 border-b border-[--border-subtle] transition-all"
   >
     <div
-      class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between"
+      class="max-w-6xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between"
     >
       <!-- Logo -->
       <RouterLink
         to="/"
-        class="flex items-center gap-2.5 text-white font-bold text-lg tracking-tight group"
+        class="flex items-center gap-2 font-display text-lg tracking-tight group"
         @click="closeMobileMenu"
       >
-        <div
-          class="w-9 h-9 rounded-lg bg-[#0e1411] border border-[#00ff87]/30 flex items-center justify-center text-[#00ff87] group-hover:border-[#00ff87] group-hover:shadow-[0_0_15px_rgba(0,255,135,0.3)] transition-all duration-300"
-        >
-          <Code2 class="w-5 h-5" />
-        </div>
-        <span class="flex items-center gap-1">
-          <span>erik</span>
-          <span class="text-[#00ff87]">.dev</span>
-          <span
-            class="w-1.5 h-1.5 rounded-full bg-[#00ff87] animate-pulse inline-block ml-0.5"
-          />
+        <span class="text-[--text-primary] group-hover:text-[--accent] transition-colors duration-200">
+          erik
         </span>
+        <span class="text-[--accent]">.dev</span>
       </RouterLink>
 
       <!-- Desktop Navigation -->
       <nav class="hidden md:flex items-center gap-1">
-        <RouterLink
-          to="/"
-          class="px-3.5 py-2 text-sm font-medium rounded-lg transition-colors"
-          :class="[
-            route.path === '/'
-              ? 'text-[#00ff87] bg-[#00ff87]/10'
-              : 'text-[#94a3b8] hover:text-[#f8fafc] hover:bg-white/5',
-          ]"
-        >
-          Início
-        </RouterLink>
-
-        <RouterLink
-          to="/projetos"
-          class="px-3.5 py-2 text-sm font-medium rounded-lg transition-colors"
-          :class="[
-            route.path === '/projetos'
-              ? 'text-[#00ff87] bg-[#00ff87]/10'
-              : 'text-[#94a3b8] hover:text-[#f8fafc] hover:bg-white/5',
-          ]"
-        >
-          Projetos
-        </RouterLink>
-
-        <a
-          href="/#sobre"
-          class="px-3.5 py-2 text-sm font-medium text-[#94a3b8] hover:text-[#f8fafc] hover:bg-white/5 rounded-lg transition-colors"
-        >
-          Sobre
-        </a>
-
-        <a
-          href="/#contato"
-          class="px-3.5 py-2 text-sm font-medium text-[#94a3b8] hover:text-[#f8fafc] hover:bg-white/5 rounded-lg transition-colors"
-        >
-          Contato
-        </a>
+        <template v-for="link in navLinks" :key="link.to">
+          <a
+            v-if="link.hash"
+            :href="link.to"
+            class="px-3 py-2 text-sm font-body font-medium rounded-md transition-colors duration-200 text-[--text-secondary] hover:text-[--text-primary] hover:bg-[--surface]"
+          >
+            {{ link.label }}
+          </a>
+          <RouterLink
+            v-else
+            :to="link.to"
+            class="px-3 py-2 text-sm font-body font-medium rounded-md transition-colors duration-200"
+            :class="[
+              route.path === link.to
+                ? 'text-[--accent] bg-[--accent-dim]'
+                : 'text-[--text-secondary] hover:text-[--text-primary] hover:bg-[--surface]',
+            ]"
+          >
+            {{ link.label }}
+          </RouterLink>
+        </template>
       </nav>
 
-      <!-- Right Action CTAs -->
+      <!-- Right Actions -->
       <div class="hidden md:flex items-center gap-3">
-        <!-- If Admin Logged In -->
         <template v-if="authStore.isAuthenticated">
           <RouterLink
             to="/admin/dashboard"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#00ff87] bg-[#00ff87]/10 border border-[#00ff87]/30 rounded-lg hover:bg-[#00ff87]/20 transition"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-medium text-[--accent] bg-[--accent-dim] border border-[--border-accent] rounded-md hover:bg-[--accent]/20 transition-colors"
           >
             <LayoutDashboard class="w-3.5 h-3.5" />
-            Painel Admin
+            Painel
           </RouterLink>
-
           <button
             @click="handleLogout"
             title="Sair"
-            class="text-[#94a3b8] hover:text-red-400 p-2 rounded-lg hover:bg-white/5 transition"
+            class="text-[--text-secondary] hover:text-[--danger] p-2 rounded-md hover:bg-[--surface] transition-colors"
           >
             <LogOut class="w-4 h-4" />
           </button>
         </template>
 
-        <!-- If Public Visitor -->
         <template v-else>
           <a
             href="/#contato"
-            class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[#060908] bg-[#00ff87] hover:bg-[#34d399] rounded-lg shadow-[0_0_15px_rgba(0,255,135,0.2)] hover:shadow-[0_0_20px_rgba(0,255,135,0.35)] transition duration-200"
+            class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-body font-semibold text-[--canvas] bg-[--accent] hover:bg-[--accent-hover] rounded-md transition-colors duration-200"
           >
-            <Send class="w-3.5 h-3.5" />
             Fale Comigo
+            <ArrowUpRight class="w-3.5 h-3.5" />
           </a>
         </template>
       </div>
 
-      <!-- Mobile Menu Toggle Button -->
+      <!-- Mobile Menu Toggle -->
       <button
         @click="isMobileMenuOpen = !isMobileMenuOpen"
-        class="md:hidden text-[#94a3b8] hover:text-[#f8fafc] p-2 rounded-lg hover:bg-white/5 transition"
-        aria-label="Abrir menu"
+        class="md:hidden text-[--text-secondary] hover:text-[--text-primary] p-2 rounded-md hover:bg-[--surface] transition-colors"
+        :aria-label="isMobileMenuOpen ? 'Fechar menu' : 'Abrir menu'"
+        aria-expanded="false"
       >
-        <Menu v-if="!isMobileMenuOpen" class="w-6 h-6" />
-        <X v-else class="w-6 h-6" />
+        <Menu v-if="!isMobileMenuOpen" class="w-5 h-5" />
+        <X v-else class="w-5 h-5" />
       </button>
     </div>
 
-    <!-- Mobile Dropdown Navigation -->
+    <!-- Mobile Dropdown -->
     <Transition
       enter-active-class="transition duration-200 ease-out"
       enter-from-class="opacity-0 -translate-y-2"
@@ -152,68 +128,45 @@ const handleLogout = () => {
     >
       <div
         v-if="isMobileMenuOpen"
-        class="md:hidden px-4 pt-3 pb-6 bg-[#0e1411] border-b border-white/10 space-y-2"
+        class="md:hidden px-5 pt-2 pb-6 bg-[--surface] border-b border-[--border-subtle] space-y-1"
       >
-        <RouterLink
-          to="/"
-          @click="closeMobileMenu"
-          class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg"
-          :class="[
-            route.path === '/'
-              ? 'text-[#00ff87] bg-[#00ff87]/10'
-              : 'text-[#94a3b8]',
-          ]"
-        >
-          <Code2 class="w-4 h-4" />
-          Início
-        </RouterLink>
+        <template v-for="link in navLinks" :key="link.to">
+          <a
+            v-if="link.hash"
+            :href="link.to"
+            @click="closeMobileMenu"
+            class="block px-3 py-2.5 text-sm font-body font-medium rounded-md text-[--text-secondary] hover:text-[--text-primary] hover:bg-[--surface-elevated]"
+          >
+            {{ link.label }}
+          </a>
+          <RouterLink
+            v-else
+            :to="link.to"
+            @click="closeMobileMenu"
+            class="block px-3 py-2.5 text-sm font-body font-medium rounded-md"
+            :class="[
+              route.path === link.to
+                ? 'text-[--accent] bg-[--accent-dim]'
+                : 'text-[--text-secondary] hover:text-[--text-primary] hover:bg-[--surface-elevated]',
+            ]"
+          >
+            {{ link.label }}
+          </RouterLink>
+        </template>
 
-        <RouterLink
-          to="/projetos"
-          @click="closeMobileMenu"
-          class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg"
-          :class="[
-            route.path === '/projetos'
-              ? 'text-[#00ff87] bg-[#00ff87]/10'
-              : 'text-[#94a3b8]',
-          ]"
-        >
-          <FolderGit2 class="w-4 h-4" />
-          Projetos
-        </RouterLink>
-
-        <a
-          href="/#sobre"
-          @click="closeMobileMenu"
-          class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-[#94a3b8]"
-        >
-          <User class="w-4 h-4" />
-          Sobre
-        </a>
-
-        <a
-          href="/#contato"
-          @click="closeMobileMenu"
-          class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-[#94a3b8]"
-        >
-          <Send class="w-4 h-4" />
-          Contato
-        </a>
-
-        <div class="pt-3 border-t border-white/10 space-y-2">
+        <div class="pt-3 mt-2 border-t border-[--border-subtle]">
           <template v-if="authStore.isAuthenticated">
             <RouterLink
               to="/admin/dashboard"
               @click="closeMobileMenu"
-              class="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-lg bg-[#00ff87]/10 text-[#00ff87] border border-[#00ff87]/30 text-sm font-semibold"
+              class="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-md bg-[--accent-dim] text-[--accent] border border-[--border-accent] text-sm font-medium"
             >
               <LayoutDashboard class="w-4 h-4" />
               Painel Admin
             </RouterLink>
-
             <button
               @click="handleLogout"
-              class="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 text-sm font-semibold"
+              class="flex items-center justify-center gap-2 w-full mt-2 py-2.5 px-4 rounded-md bg-[--danger-surface] text-[--danger] border border-[--danger-border] text-sm font-medium"
             >
               <LogOut class="w-4 h-4" />
               Encerrar Sessão
@@ -224,10 +177,10 @@ const handleLogout = () => {
             <a
               href="/#contato"
               @click="closeMobileMenu"
-              class="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-lg bg-[#00ff87] text-[#060908] font-bold text-sm shadow-[0_0_15px_rgba(0,255,135,0.25)]"
+              class="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-md bg-[--accent] text-[--canvas] font-semibold text-sm"
             >
-              <Send class="w-4 h-4" />
               Fale Comigo
+              <ArrowUpRight class="w-4 h-4" />
             </a>
           </template>
         </div>

@@ -1,96 +1,90 @@
-﻿<script setup lang="ts">
-import { computed } from 'vue';
-import { RouterLink } from 'vue-router';
-import { Loader2 } from 'lucide-vue-next';
+<script setup lang="ts">
+import { computed } from 'vue'
+import { RouterLink } from 'vue-router'
 
 interface Props {
-  variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
-  type?: 'button' | 'submit' | 'reset';
-  loading?: boolean;
-  disabled?: boolean;
-  to?: string | object;
-  href?: string;
-  target?: string;
+  variant?: 'primary' | 'secondary' | 'ghost' | 'outline' | 'danger'
+  size?: 'sm' | 'md' | 'lg'
+  to?: string
+  href?: string
+  disabled?: boolean
+  loading?: boolean
+  type?: 'button' | 'submit' | 'reset'
 }
 
 const props = withDefaults(defineProps<Props>(), {
   variant: 'primary',
   size: 'md',
-  type: 'button',
-  loading: false,
   disabled: false,
-});
+  loading: false,
+  type: 'button',
+})
 
-const isLink = computed(() => !!props.to || !!props.href);
+defineEmits(['click'])
 
 const baseClasses =
-  'inline-flex items-center justify-center font-medium transition-all duration-200 cursor-pointer select-none rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#060908] disabled:opacity-50 disabled:cursor-not-allowed';
-
-const sizeClasses = computed(() => {
-  switch (props.size) {
-    case 'sm':
-      return 'px-3 py-1.5 text-xs gap-1.5';
-    case 'lg':
-      return 'px-6 py-3 text-base gap-3';
-    case 'md':
-    default:
-      return 'px-4 py-2 text-sm gap-2';
-  }
-});
+  'inline-flex items-center justify-center gap-2 font-body font-semibold rounded-md transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
 
 const variantClasses = computed(() => {
-  switch (props.variant) {
-    case 'primary':
-      return 'bg-[#00ff87] text-[#060908] font-semibold hover:bg-[#34d399] shadow-[0_0_20px_rgba(0,255,135,0.25)] hover:shadow-[0_0_28px_rgba(0,255,135,0.4)] focus:ring-[#00ff87] active:scale-[0.98]';
-    case 'secondary':
-      return 'bg-[#151d19] text-[#f8fafc] hover:bg-[#1f2b25] border border-white/10 hover:border-[#00ff87]/30 focus:ring-[#00ff87]/50 active:scale-[0.98]';
-    case 'outline':
-      return 'bg-transparent text-[#00ff87] border border-[#00ff87]/40 hover:border-[#00ff87] hover:bg-[#00ff87]/10 focus:ring-[#00ff87] active:scale-[0.98]';
-    case 'danger':
-      return 'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500 hover:text-white focus:ring-red-500 active:scale-[0.98]';
-    case 'ghost':
-      return 'bg-transparent text-[#94a3b8] hover:text-[#f8fafc] hover:bg-white/5 focus:ring-white/20';
-    default:
-      return '';
+  const variants: Record<string, string> = {
+    primary:
+      'bg-[--accent] text-[--canvas] hover:bg-[--accent-hover] active:scale-[0.98]',
+    secondary:
+      'bg-[--surface] text-[--text-primary] border border-[--border-subtle] hover:border-[--border-accent] hover:text-[--accent] active:scale-[0.98]',
+    ghost:
+      'text-[--text-secondary] hover:text-[--text-primary] hover:bg-[--surface]',
+    outline:
+      'border border-[--border-accent] text-[--accent] hover:bg-[--accent-dim] active:scale-[0.98]',
+    danger:
+      'bg-[--danger] text-white hover:bg-[--danger-hover] active:scale-[0.98]',
   }
-});
+  return variants[props.variant] || variants.primary
+})
+
+const sizeClasses = computed(() => {
+  const sizes: Record<string, string> = {
+    sm: 'text-xs px-3 py-1.5',
+    md: 'text-sm px-4 py-2',
+    lg: 'text-sm px-6 py-3',
+  }
+  return sizes[props.size] || sizes.md
+})
+
+const tag = computed(() => {
+  if (props.to) return RouterLink
+  if (props.href) return 'a'
+  return 'button'
+})
+
+const linkProps = computed(() => {
+  if (props.to) return { to: props.to }
+  if (props.href) {
+    const isExternal =
+      props.href.startsWith('http') || props.href.startsWith('mailto')
+    return {
+      href: props.href,
+      ...(isExternal
+        ? { target: '_blank', rel: 'noopener noreferrer' }
+        : {}),
+    }
+  }
+  return { type: props.type, disabled: props.disabled || props.loading }
+})
 </script>
 
 <template>
-  <RouterLink
-    v-if="to"
-    :to="to"
-    :class="[baseClasses, sizeClasses, variantClasses]"
+  <component
+    :is="tag"
+    v-bind="linkProps"
+    :class="[baseClasses, variantClasses, sizeClasses]"
+    @click="$emit('click', $event)"
   >
-    <Loader2 v-if="loading" class="w-4 h-4 animate-spin shrink-0" />
+    <span
+      v-if="loading"
+      class="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"
+    />
     <slot name="icon-left" />
     <slot />
     <slot name="icon-right" />
-  </RouterLink>
-
-  <a
-    v-else-if="href"
-    :href="href"
-    :target="target || '_blank'"
-    rel="noopener noreferrer"
-    :class="[baseClasses, sizeClasses, variantClasses]"
-  >
-    <Loader2 v-if="loading" class="w-4 h-4 animate-spin shrink-0" />
-    <slot name="icon-left" />
-    <slot />
-    <slot name="icon-right" />
-  </a>
-
-  <button
-    v-else
-    :type="type"
-    :disabled="disabled || loading"
-    :class="[baseClasses, sizeClasses, variantClasses]"
-  >
-    <Loader2 v-if="loading" class="w-4 h-4 animate-spin shrink-0" />
-    <slot name="icon-left" />
-    <slot />
-    <slot name="icon-right" />
-  </button>
+  </component>
 </template>

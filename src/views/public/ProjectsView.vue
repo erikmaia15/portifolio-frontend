@@ -1,61 +1,52 @@
-﻿<script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useProjectsStore } from '@/stores/projects.store';
-import ProjectGrid from '@/components/project/ProjectGrid.vue';
-import BaseInput from '@/components/ui/BaseInput.vue';
-import BaseButton from '@/components/ui/BaseButton.vue';
-import { Search, FolderGit2, RefreshCw, Sparkles } from 'lucide-vue-next';
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useProjectsStore } from '@/stores/projects.store'
+import ProjectGrid from '@/components/project/ProjectGrid.vue'
+import BaseInput from '@/components/ui/BaseInput.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
+import { Search, RefreshCw } from 'lucide-vue-next'
 
-const projectsStore = useProjectsStore();
-const searchQuery = ref('');
+const projectsStore = useProjectsStore()
+const searchQuery = ref('')
 
 const loadProjects = () => {
-  projectsStore.fetchProjects().catch(() => {
-    // Handled in store
-  });
-};
+  projectsStore.fetchProjects().catch(() => {})
+}
 
 onMounted(() => {
-  loadProjects();
-});
+  loadProjects()
+})
 
 const filteredProjects = computed(() => {
-  const query = searchQuery.value.toLowerCase().trim();
-  if (!query) return projectsStore.sortedProjects;
+  const query = searchQuery.value.toLowerCase().trim()
+  if (!query) return projectsStore.sortedProjects
 
   return projectsStore.sortedProjects.filter(
     (p) =>
       p.name.toLowerCase().includes(query) ||
       p.description.toLowerCase().includes(query)
-  );
-});
+  )
+})
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-12">
-    <!-- Header Section -->
-    <div class="text-center max-w-2xl mx-auto space-y-4">
-      <div
-        class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0e1411] border border-[#00ff87]/30 text-xs font-semibold text-[#00ff87]"
-      >
-        <FolderGit2 class="w-3.5 h-3.5" />
-        Galeria de Trabalhos
-      </div>
-
-      <h1 class="text-3xl sm:text-5xl font-extrabold text-[#f8fafc] tracking-tight">
-        Projetos & Aplicações
+  <div class="max-w-6xl mx-auto px-5 sm:px-8 py-12 sm:py-20 space-y-12">
+    <!-- Header -->
+    <div class="max-w-2xl space-y-4">
+      <span class="section-label">02 · Projetos</span>
+      <h1 class="text-3xl sm:text-4xl font-display font-bold text-[--text-primary] tracking-tight">
+        O que eu construí
       </h1>
-
-      <p class="text-sm sm:text-base text-[#94a3b8]">
-        Explore as soluções desenvolvidas, arquiteturas implementadas e repositórios de código aberto.
+      <p class="text-sm sm:text-base font-body text-[--text-secondary] leading-relaxed">
+        Cada projeto aqui resolve um problema real. APIs, interfaces, pipelines de dados — explore o código e as decisões por trás de cada um.
       </p>
     </div>
 
-    <!-- Search & Filter Bar -->
-    <div class="max-w-md mx-auto flex flex-col sm:flex-row items-center gap-4">
+    <!-- Search -->
+    <div class="max-w-sm">
       <BaseInput
         v-model="searchQuery"
-        placeholder="Buscar por nome ou tecnologia..."
+        placeholder="Buscar por nome ou descrição..."
         type="search"
       >
         <template #prefix>
@@ -64,19 +55,15 @@ const filteredProjects = computed(() => {
       </BaseInput>
     </div>
 
-    <!-- Error State with Retry -->
+    <!-- Error State -->
     <div
       v-if="projectsStore.error && !projectsStore.isLoading"
-      class="max-w-md mx-auto p-6 bg-red-500/10 border border-red-500/20 rounded-2xl text-center space-y-4"
+      class="max-w-md p-6 bg-[--danger-surface] border border-[--danger-border] rounded-lg space-y-4"
     >
-      <p class="text-sm text-red-400 font-medium">
+      <p class="text-sm text-red-400 font-body font-medium">
         {{ projectsStore.error }}
       </p>
-      <BaseButton
-        variant="outline"
-        size="sm"
-        @click="loadProjects"
-      >
+      <BaseButton variant="outline" size="sm" @click="loadProjects">
         <template #icon-left>
           <RefreshCw class="w-3.5 h-3.5" />
         </template>
@@ -84,17 +71,14 @@ const filteredProjects = computed(() => {
       </BaseButton>
     </div>
 
-    <!-- Projects Grid Display -->
-    <div v-else class="space-y-6">
-      <div class="flex items-center justify-between text-xs text-[#94a3b8] px-1">
+    <!-- Projects Grid -->
+    <div v-else class="space-y-4">
+      <div class="flex items-center justify-between text-xs font-mono text-[--text-muted] px-1">
         <span>
-          Exibindo
-          <strong class="text-[#00ff87]">{{ filteredProjects.length }}</strong>
-          {{ filteredProjects.length === 1 ? 'projeto' : 'projetos' }}
+          {{ filteredProjects.length }} {{ filteredProjects.length === 1 ? 'projeto' : 'projetos' }}
         </span>
-
-        <span v-if="searchQuery" class="text-[#64748b]">
-          Filtrado por: "{{ searchQuery }}"
+        <span v-if="searchQuery" class="text-[--text-muted]">
+          filtro: "{{ searchQuery }}"
         </span>
       </div>
 
