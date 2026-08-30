@@ -53,19 +53,11 @@ const navLinks = [
       <!-- Desktop Navigation -->
       <nav class="hidden md:flex items-center gap-1">
         <template v-for="link in navLinks" :key="link.to">
-          <a
-            v-if="link.hash"
-            :href="link.to"
-            class="px-3 py-2 text-sm font-body font-medium rounded-md transition-colors duration-200 text-[--text-secondary] hover:text-[--text-primary] hover:bg-[--surface]"
-          >
-            {{ link.label }}
-          </a>
           <RouterLink
-            v-else
             :to="link.to"
             class="px-3 py-2 text-sm font-body font-medium rounded-md transition-colors duration-200"
             :class="[
-              route.path === link.to
+              (link.hash ? route.hash === link.to.substring(link.to.indexOf('#')) : route.path === link.to && !route.hash)
                 ? 'text-[--accent] bg-[--accent-dim]'
                 : 'text-[--text-secondary] hover:text-[--text-primary] hover:bg-[--surface]',
             ]"
@@ -95,13 +87,13 @@ const navLinks = [
         </template>
 
         <template v-else>
-          <a
-            href="/#contato"
+          <RouterLink
+            to="/#contato"
             class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-body font-semibold text-[--canvas] bg-[--accent] hover:bg-[--accent-hover] rounded-md transition-colors duration-200"
           >
             Fale Comigo
             <ArrowUpRight class="w-3.5 h-3.5" />
-          </a>
+          </RouterLink>
         </template>
       </div>
 
@@ -131,21 +123,12 @@ const navLinks = [
         class="md:hidden px-5 pt-2 pb-6 bg-[--surface] border-b border-[--border-subtle] space-y-1"
       >
         <template v-for="link in navLinks" :key="link.to">
-          <a
-            v-if="link.hash"
-            :href="link.to"
-            @click="closeMobileMenu"
-            class="block px-3 py-2.5 text-sm font-body font-medium rounded-md text-[--text-secondary] hover:text-[--text-primary] hover:bg-[--surface-elevated]"
-          >
-            {{ link.label }}
-          </a>
           <RouterLink
-            v-else
             :to="link.to"
             @click="closeMobileMenu"
             class="block px-3 py-2.5 text-sm font-body font-medium rounded-md"
             :class="[
-              route.path === link.to
+              (link.hash ? route.hash === link.to.substring(link.to.indexOf('#')) : route.path === link.to && !route.hash)
                 ? 'text-[--accent] bg-[--accent-dim]'
                 : 'text-[--text-secondary] hover:text-[--text-primary] hover:bg-[--surface-elevated]',
             ]"
@@ -174,14 +157,14 @@ const navLinks = [
           </template>
 
           <template v-else>
-            <a
-              href="/#contato"
+            <RouterLink
+              to="/#contato"
               @click="closeMobileMenu"
               class="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-md bg-[--accent] text-[--canvas] font-semibold text-sm"
             >
               Fale Comigo
               <ArrowUpRight class="w-4 h-4" />
-            </a>
+            </RouterLink>
           </template>
         </div>
       </div>

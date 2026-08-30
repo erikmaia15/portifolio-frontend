@@ -197,8 +197,7 @@ onUnmounted(() => {
           </h1>
 
           <p class="hero-sub text-base sm:text-lg font-body text-[--text-secondary] leading-relaxed max-w-2xl">
-            APIs em NestJS, interfaces em Vue 3, dados em PostgreSQL.
-            Do schema do banco ao deploy na Vercel — eu codifico todo o pipeline.
+            APIs em NestJS, interfaces em Vue 3, dados em PostgreSQL. Do schema do banco ao deploy — eu codifico o pipeline inteiro.
           </p>
 
           <!-- Tech stack with stagger animation -->
@@ -302,15 +301,15 @@ onUnmounted(() => {
                   </h2>
 
                   <p class="reveal-child text-sm font-body text-[--text-secondary] leading-relaxed">
-                    Desenvolvedor full stack do Brasil. Meu trabalho é montar o backend que aguenta carga e o frontend que as pessoas realmente usam.
+                    Desenvolvedor focado em construir sistemas que não quebram quando o tráfego aumenta. Trabalho de ponta a ponta: modelo os dados, escrevo a API em NestJS com arquitetura modular (DTOs, guards, autenticação JWT), e construo a interface em Vue 3 com TypeScript e Tailwind.
                   </p>
 
                   <p class="reveal-child text-sm font-body text-[--text-secondary] leading-relaxed">
-                    Escrevo APIs modulares com NestJS e TypeORM, modelos de dados normalizados em PostgreSQL, e interfaces reativas com Vue 3 e Composition API. Gosto de TypeScript estrito — sem <code class="font-mono text-[--accent] text-xs bg-[--accent-dim] px-1 py-0.5 rounded">any</code>, sem gambiarras.
+                    Uso Redis pra cache quando a performance importa e Docker pra manter o ambiente igual do meu setup até a produção. Prefiro entender o problema todo antes de escrever a primeira linha — é mais rápido corrigir uma decisão no papel do que refatorar em produção.
                   </p>
 
                   <p class="reveal-child text-sm font-body text-[--text-secondary] leading-relaxed">
-                    Quando um projeto precisa de cache, eu configuro Redis. Quando precisa de isolamento, eu containerizo com Docker. Eu gosto de código que funciona em produção sem surpreender ninguém às 3 da manhã.
+                    Programo há 1 a 2 anos, com foco em projetos reais que precisam funcionar sob uso de verdade, não só rodar localmente. Aberto a estágio, CLT ou projetos freelance.
                   </p>
                 </div>
               </div>
@@ -332,7 +331,7 @@ onUnmounted(() => {
 
                 <div>
                   <span class="text-[10px] font-mono text-[--text-muted] uppercase tracking-wider block mb-1">Especialidade</span>
-                  <p class="text-sm font-body font-medium text-[--text-primary]">Full Stack — NestJS + Vue 3</p>
+                  <p class="text-sm font-body font-medium text-[--text-primary]">Full Stack (NestJS + Vue 3)</p>
                 </div>
 
                 <div>
@@ -341,15 +340,15 @@ onUnmounted(() => {
                 </div>
 
                 <div>
-                  <span class="text-[10px] font-mono text-[--text-muted] uppercase tracking-wider block mb-1">Infra</span>
-                  <p class="text-sm font-body font-medium text-[--text-primary]">Docker, Vercel, CI/CD</p>
+                  <span class="text-[10px] font-mono text-[--text-muted] uppercase tracking-wider block mb-1">Modelo de trabalho</span>
+                  <p class="text-sm font-body font-medium text-[--text-primary]">CLT, Estágio ou Freelance/PJ</p>
                 </div>
 
                 <div>
-                  <span class="text-[10px] font-mono text-[--text-muted] uppercase tracking-wider block mb-1">Status</span>
+                  <span class="text-[10px] font-mono text-[--text-muted] uppercase tracking-wider block mb-1">Disponibilidade</span>
                   <p class="text-sm font-body font-medium text-[--accent] flex items-center gap-2">
                     <span class="w-1.5 h-1.5 rounded-full bg-[--accent] animate-pulse" />
-                    Disponível para projetos
+                    Aberta para novos projetos & contratos
                   </p>
                 </div>
               </div>
@@ -373,7 +372,7 @@ onUnmounted(() => {
               Vamos construir algo.
             </h2>
             <p class="reveal-child text-sm sm:text-base font-body text-[--text-secondary] leading-relaxed">
-              Se você tem um projeto que precisa de backend sólido ou uma interface que funcione de verdade, me mande uma mensagem.
+              Se você tem uma vaga, um projeto freelance ou uma posição de estágio onde eu possa contribuir de verdade, me manda uma mensagem.
             </p>
           </div>
 

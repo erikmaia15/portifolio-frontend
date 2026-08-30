@@ -1,4 +1,4 @@
-﻿import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
 
 const routes = [
@@ -49,9 +49,21 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
-  scrollBehavior(_to, _from, savedPosition) {
+  scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {
       return savedPosition;
+    }
+    if (to.hash) {
+      // Se já estamos na mesma página (ex: clicou em Contato estando na Home)
+      if (to.path === from.path) {
+        return { el: to.hash, behavior: 'smooth' };
+      }
+      // Se veio de outra página (ex: de /projetos para a Home), aguarda a transição de saída (300ms)
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({ el: to.hash, behavior: 'smooth' });
+        }, 350);
+      });
     }
     return { top: 0, behavior: 'smooth' };
   },
