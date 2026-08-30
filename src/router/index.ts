@@ -1,5 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
+import { gsap } from 'gsap';
+
+if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
+  window.history.scrollRestoration = 'manual';
+}
 
 const routes = [
   {
@@ -49,21 +54,32 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
-  scrollBehavior(to, from, savedPosition) {
+  scrollBehavior(to, _from, savedPosition) {
     if (savedPosition) {
       return savedPosition;
     }
     if (to.hash) {
-      // Se já estamos na mesma página (ex: clicou em Contato estando na Home)
-      if (to.path === from.path) {
-        return { el: to.hash, behavior: 'smooth' };
+      const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (prefersReducedMotion) {
+        return { el: to.hash };
       }
-      // Se veio de outra página (ex: de /projetos para a Home), aguarda a transição de saída (300ms)
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({ el: to.hash, behavior: 'smooth' });
-        }, 350);
-      });
+
+      setTimeout(() => {
+        const targetEl = document.querySelector(to.hash);
+        if (targetEl) {
+          const targetY = targetEl.getBoundingClientRect().top + window.scrollY;
+          const scrollObj = { y: window.scrollY };
+          gsap.to(scrollObj, {
+            y: targetY,
+            duration: 1.5,
+            ease: 'power2.inOut',
+            onUpdate: () => {
+              window.scrollTo(0, scrollObj.y);
+            }
+          });
+        }
+      }, 50);
+      return false; // Evita que o Vue Router faça scroll instantâneo
     }
     return { top: 0, behavior: 'smooth' };
   },

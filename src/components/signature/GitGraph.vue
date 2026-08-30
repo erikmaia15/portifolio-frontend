@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useReducedMotion } from '@/composables/useReducedMotion'
+import { gsap } from 'gsap'
 
 interface Section {
   id: string
@@ -41,7 +42,20 @@ function handleScroll() {
 function scrollToSection(sectionId: string) {
   const el = document.getElementById(sectionId)
   if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    if (prefersReducedMotion.value) {
+      el.scrollIntoView({ block: 'start' })
+    } else {
+      const targetY = el.getBoundingClientRect().top + window.scrollY
+      const scrollObj = { y: window.scrollY }
+      gsap.to(scrollObj, {
+        y: targetY,
+        duration: 1.5,
+        ease: 'power2.inOut',
+        onUpdate: () => {
+          window.scrollTo(0, scrollObj.y)
+        }
+      })
+    }
   }
 }
 

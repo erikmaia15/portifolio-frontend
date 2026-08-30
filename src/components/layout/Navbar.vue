@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
+import { gsap } from 'gsap'
 import {
   LayoutDashboard,
   LogOut,
@@ -29,6 +30,60 @@ const navLinks = [
   { to: '/#sobre', label: 'Sobre', hash: true },
   { to: '/#contato', label: 'Contato', hash: true },
 ]
+
+const handleNavClick = (link: { to: string; hash: boolean; label: string }, event: Event) => {
+  closeMobileMenu()
+
+  if (link.hash && route.path === '/') {
+    event.preventDefault()
+    const hash = link.to.substring(link.to.indexOf('#'))
+    const targetEl = document.getElementById(hash.substring(1))
+    if (targetEl) {
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      if (prefersReducedMotion) {
+        targetEl.scrollIntoView({ block: 'start' })
+      } else {
+        const targetY = targetEl.getBoundingClientRect().top + window.scrollY
+        const scrollObj = { y: window.scrollY }
+        gsap.to(scrollObj, {
+          y: targetY,
+          duration: 1.5,
+          ease: 'power2.inOut',
+          onUpdate: () => {
+            window.scrollTo(0, scrollObj.y)
+          }
+        })
+      }
+      window.history.pushState(null, '', link.to)
+    }
+  }
+}
+
+const handleContactClick = (event: Event) => {
+  closeMobileMenu()
+  if (route.path === '/') {
+    event.preventDefault()
+    const targetEl = document.getElementById('contato')
+    if (targetEl) {
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      if (prefersReducedMotion) {
+        targetEl.scrollIntoView({ block: 'start' })
+      } else {
+        const targetY = targetEl.getBoundingClientRect().top + window.scrollY
+        const scrollObj = { y: window.scrollY }
+        gsap.to(scrollObj, {
+          y: targetY,
+          duration: 1.5,
+          ease: 'power2.inOut',
+          onUpdate: () => {
+            window.scrollTo(0, scrollObj.y)
+          }
+        })
+      }
+      window.history.pushState(null, '', '/#contato')
+    }
+  }
+}
 </script>
 
 <template>
@@ -55,6 +110,7 @@ const navLinks = [
         <template v-for="link in navLinks" :key="link.to">
           <RouterLink
             :to="link.to"
+            @click="handleNavClick(link, $event)"
             class="px-3 py-2 text-sm font-body font-medium rounded-md transition-colors duration-200"
             :class="[
               (link.hash ? route.hash === link.to.substring(link.to.indexOf('#')) : route.path === link.to && !route.hash)
@@ -89,6 +145,7 @@ const navLinks = [
         <template v-else>
           <RouterLink
             to="/#contato"
+            @click="handleContactClick($event)"
             class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-body font-semibold text-[--canvas] bg-[--accent] hover:bg-[--accent-hover] rounded-md transition-colors duration-200"
           >
             Fale Comigo
@@ -125,7 +182,7 @@ const navLinks = [
         <template v-for="link in navLinks" :key="link.to">
           <RouterLink
             :to="link.to"
-            @click="closeMobileMenu"
+            @click="handleNavClick(link, $event)"
             class="block px-3 py-2.5 text-sm font-body font-medium rounded-md"
             :class="[
               (link.hash ? route.hash === link.to.substring(link.to.indexOf('#')) : route.path === link.to && !route.hash)
@@ -159,7 +216,7 @@ const navLinks = [
           <template v-else>
             <RouterLink
               to="/#contato"
-              @click="closeMobileMenu"
+              @click="handleContactClick($event)"
               class="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-md bg-[--accent] text-[--canvas] font-semibold text-sm"
             >
               Fale Comigo
