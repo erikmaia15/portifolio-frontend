@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
 import {
@@ -8,6 +8,7 @@ import {
   LogOut,
   Shield,
   User,
+  FileText,
 } from 'lucide-vue-next';
 
 defineProps<{
@@ -76,6 +77,20 @@ const handleLogout = () => {
         >
           <PlusCircle class="w-4 h-4" />
           Novo Projeto
+        </RouterLink>
+
+        <RouterLink
+          to="/admin/conteudo"
+          @click="emit('close')"
+          class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition duration-150"
+          :class="[
+            route.path === '/admin/conteudo'
+              ? 'bg-[#00ff87]/15 text-[#00ff87] border border-[#00ff87]/30 font-semibold shadow-[0_0_12px_rgba(0,255,135,0.15)]'
+              : 'text-[#94a3b8] hover:text-[#f8fafc] hover:bg-white/5',
+          ]"
+        >
+          <FileText class="w-4 h-4" />
+          Editar Portifólio
         </RouterLink>
       </nav>
 
